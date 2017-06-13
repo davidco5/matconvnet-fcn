@@ -2,7 +2,7 @@ function net = fcnInitializeModel(varargin)
 %FCNINITIALIZEMODEL Initialize the FCN-32 model from VGG-VD-16
 
 opts.sourceModelUrl = 'http://www.vlfeat.org/matconvnet/models/imagenet-vgg-verydeep-16.mat' ;
-opts.sourceModelPath = 'data/models/imagenet-vgg-verydeep-16.mat' ;
+opts.sourceModelPath = 'data\models\imagenet-vgg-verydeep-16.mat' ;
 opts = vl_argparse(opts, varargin) ;
 
 % -------------------------------------------------------------------------
@@ -16,8 +16,8 @@ end
 net = vl_simplenn_tidy(load(opts.sourceModelPath)) ;
 
 % for convt (deconv) layers, cuDNN seems to be slower?
-net.meta.cudnnOpts = {'cudnnworkspacelimit', 512 * 1024^3} ;
-%net.meta.cudnnOpts = {'nocudnn'} ;
+net.meta.cudnnOpts = {'cudnnworkspacelimit', 1.5 * 1024^3} ;
+% net.meta.cudnnOpts = {'nocudnn'} ;
 
 % -------------------------------------------------------------------------
 %                                  Edit the model to create the FCN version

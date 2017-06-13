@@ -15,7 +15,7 @@ stats.classCounts = classCounts ;
 % Image statistics
 for t=1:numel(train)
   fprintf('%s: computing RGB stats for training image %d\n', mfilename, t) ;
-  rgb = imread(sprintf(imdb.paths.image.train, ['ct', imdb.images.name{train(t)}])) ;
+  rgb = imread(sprintf(imdb.paths.image.train, imdb.images.name{train(t)})) ;
   rgb = single(rgb) ;
   z = reshape(permute(rgb,[3 1 2 4]),3,[]) ;
   n = size(z,2) ;

@@ -1,14 +1,14 @@
 function imdb = vocSetup(varargin)
-opts.edition = '07' ;
-opts.dataDir = fullfile('data','voc07') ;
+% opts.edition = '11' ;
+opts.dataDir = fullfile('data','voc11') ;
 opts.archiveDir = fullfile('data','archives') ;
 opts.includeDetection = false ;
-opts.includeSegmentation = false ;
+opts.includeSegmentation = true ;
 opts.includeTest = false ;
 opts = vl_argparse(opts, varargin) ;
 
 % Download data
-if ~exist(fullfile(opts.dataDir,'Annotations')), download(opts) ; end
+% if ~exist(fullfile(opts.dataDir,'Annotations')), download(opts) ; end
 
 % Source images and classes
 imdb.paths.image = esc(fullfile(opts.dataDir, 'JPEGImages', '%s.jpg')) ;

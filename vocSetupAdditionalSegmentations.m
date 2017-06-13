@@ -52,7 +52,9 @@ if ~haveData
   archivePath = fullfile(opts.archiveDir, 'berkeleyVoc12Segments.tar.gz') ;
   if ~exist(archivePath)
     fprintf('%s: downloading %s to %s [this may take a long time]\n', mfilename, opts.url, archivePath) ;
-    urlwrite(opts.url, archivePath) ;
+    try %#ok<TRYNC>
+        urlwrite(opts.url, archivePath) ;
+    end
   end
 
   % Uncompress Berkeley data
