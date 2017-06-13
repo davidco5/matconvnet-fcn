@@ -1,4 +1,4 @@
-function [net,stats] = cnn_train_dag(net, imdb, getBatch, varargin)
+function [net,stats] = cnn_train_dag(net, imdb, getBatch, gpus, varargin)
 %CNN_TRAIN_DAG Demonstrates training a CNN using the DagNN wrapper
 %    CNN_TRAIN_DAG() is similar to CNN_TRAIN(), but works with
 %    the DagNN wrapper instead of the SimpleNN wrapper.
@@ -12,14 +12,14 @@ function [net,stats] = cnn_train_dag(net, imdb, getBatch, varargin)
 
 opts.expDir = 'data' ;
 opts.continue = true ;
-opts.batchSize = 52 ;
+opts.batchSize = 21 ;
 opts.numSubBatches = 1 ;
 opts.train = [] ;
 opts.val = [] ;
-opts.gpus = [] ;
+opts.gpus = gpus ;
 opts.prefetch = true ;
 opts.epochSize = inf;
-opts.numEpochs = 1 ;
+opts.numEpochs = 10 ;
 opts.learningRate = 0.001 ;
 opts.weightDecay = 0.0005 ;
 
@@ -47,8 +47,8 @@ opts.postEpochFn = [] ;  % postEpochFn(net,params,state) called after each epoch
 opts = vl_argparse(opts, varargin) ;
 
 if ~exist(opts.expDir, 'dir'), mkdir(opts.expDir) ; end
-if isempty(opts.train), opts.train = find(imdb.images.set==1) ; end
-if isempty(opts.val), opts.val = find(imdb.images.set==2) ; end
+if isempty(opts.train), opts.train = find(imdb.images.set==1, opts.batchSize) ; end % TO DO: remove opts.batchSize
+if isempty(opts.val), opts.val = find(imdb.images.set==2, opts.batchSize) ; end % TO DO: remove opts.batchSize
 if isscalar(opts.train) && isnumeric(opts.train) && isnan(opts.train)
   opts.train = [] ;
 end

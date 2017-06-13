@@ -1,20 +1,22 @@
 
 %% Change segmentations for Train set
-dirPath = 'data\Train\seg\';
+originDirPath = 'data\Train\seg - original\';
+destinationDirPath = 'data\Train\seg\';
 TrainSegDir = dir('data\Train\seg\*.png');
 
 LiverThreshold = uint8(100);
-LiverSat = uint8(255);
+LiverSat = uint8(1);
 
 for i = 1: numel(TrainSegDir)
-    imagePath = fullfile(dirPath, TrainSegDir(i).name);
-    segIm = imread(imagePath);
+    origImagePath = fullfile(originDirPath, TrainSegDir(i).name);
+    segIm = imread(origImagePath);
     
     imgR = segIm(:,:,1);
     imgR( imgR > LiverThreshold) = LiverSat;
     segIm = repmat(imgR, 1,1,3);
     
-    imwrite(segIm, imagePath); 
+    destImagePath = fullfile(destinationDirPath, TrainSegDir(i).name);
+    imwrite(segIm, destImagePath); 
     
     fprintf([ num2str(i) '\n'])
 end
@@ -22,23 +24,23 @@ end
 
 %% Change segmentation for Validation set 
 
-dirPath = 'data\Val\seg\';
+originDirPath = 'data\Val\seg - original\';
+destinationDirPath = 'data\Val\seg\';
 TrainSegDir = dir('data\Val\seg\*.png');
 
 LiverThreshold = uint8(100);
 LiverSat = uint8(255);
 
 for i = 1: numel(TrainSegDir)
-    imagePath = fullfile(dirPath, TrainSegDir(i).name);
-    segIm = imread(imagePath);
+    origImagePath = fullfile(originDirPath, TrainSegDir(i).name);
+    segIm = imread(origImagePath);
     
     imgR = segIm(:,:,1);
     imgR( imgR > LiverThreshold) = LiverSat;
-    segIm(:,:,1) = imgR;
-    segIm(:,:,2) = imgR;
-    segIm(:,:,3) = imgR;
+    segIm = repmat(imgR, 1,1,3);
     
-    imwrite(segIm, imagePath);    
+	destImagePath = fullfile(destinationDirPath, TrainSegDir(i).name);
+    imwrite(segIm, destImagePath);    
     
      fprintf([ num2str(i) '\n'])
 end

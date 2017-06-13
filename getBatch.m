@@ -2,7 +2,7 @@ function y = getBatch(imdb, images, setName, varargin)
 % GET_BATCH  Load, preprocess, and pack images for CNN evaluation
 
 % opts.imageSize = [512, 512] - 128 ;
-opts.imageSize = [500, 500];
+opts.imageSize = [512, 512];
 opts.numAugments = 1 ;
 opts.transformation = 'none' ;
 opts.rgbMean = [] ;
@@ -61,12 +61,12 @@ for i=1:numel(images)
     rgb = cat(3, rgb, rgb, rgb) ;
   end
 
-  if size(rgb,1)==512
-      rgb = rgb(7:end-6, 7:end-6, :);
-  end
-  if size(anno,1)==512
-      anno = anno(7:end-6, 7:end-6, :);
-  end
+%   if size(rgb,1)==512
+%       rgb = rgb(7:end-6, 7:end-6, :);
+%   end
+%   if size(anno,1)==512
+%       anno = anno(7:end-6, 7:end-6, :);
+%   end
   
   % crop & flip
   h = size(rgb,1) ;

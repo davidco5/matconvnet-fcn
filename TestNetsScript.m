@@ -1,6 +1,6 @@
 %%This script is meant to test the FCN-16 net
 
-run vl_setupnn;
+% run vl_setupnn;
 
 preTrainedNet = load('pascal-fcn16s-dag.mat');
 net = dagnn.DagNN.loadobj(preTrainedNet) ;
