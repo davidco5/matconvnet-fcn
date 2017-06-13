@@ -1,6 +1,7 @@
 local/
 data/
 *~
+*.asv
 
 /net-train.pdf
 /imagenet-vgg-f.mat
