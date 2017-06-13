@@ -148,4 +148,4 @@ bopts.useGpu = useGpu ;
 tic
 [net,stats] = cnn_train_dag(net, imdb, ...
     @(imdb,batch,setName) getBatch(imdb,batch,setName, bopts), ones(useGpu));
-toc
+

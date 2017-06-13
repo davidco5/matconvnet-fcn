@@ -29,7 +29,7 @@ destinationDirPath = 'data\Val\seg\';
 TrainSegDir = dir('data\Val\seg\*.png');
 
 LiverThreshold = uint8(100);
-LiverSat = uint8(255);
+LiverSat = uint8(1);
 
 for i = 1: numel(TrainSegDir)
     origImagePath = fullfile(originDirPath, TrainSegDir(i).name);
