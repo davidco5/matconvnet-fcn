@@ -1,15 +1,4 @@
-%% Train and test FCN (DAG format)
-[~, pcName]  = system('whoami');
-if ~exist('vl_setupnn.m', 'file') && strcmp(pcName(1:end-1), 'david\dcorc')
-    cd('C:\Users\dcorc\OneDrive\TAU 2\Advanced Topics in Medical Image Processing 1\CNN_project\matconvnet-fcn')
-    addpath(genpath(fullfile(pwd)))
-    addpath(genpath('C:\Program Files\MATLAB\MatConvNet'))
-    run vl_setupnn;
-    dbstop if error
-end
-
-%% Load net and repalce layers parameters if needed
-
+function net = InitNet()
 % Load net, set data and initialize
 
 preTrainedNet = load('pascal-fcn16s-dag.mat');
@@ -20,12 +9,13 @@ for i = 1:numel(net.layers)-1
   if (isa(net.layers(i).block, 'dagnn.Conv') && net.layers(i).block.hasBias)
     filt = net.getParamIndex(net.layers(i).params{1}) ;
     bias = net.getParamIndex(net.layers(i).params{2}) ;
+%     net.params(filt).learningRate = net.params(filt).learningRate * 3 / (numel(net.layers) - i);
     net.params(bias).learningRate = 2 * net.params(filt).learningRate ;
   end
 end
 
  net.layers(1).block.pad = 94*ones(1,4);
- 
+initWeightsStd = 0.005;
 % Change 'score_fr' layer output. This layer is indexed as 36
 for i = [1 2]
   p = net.getParamIndex(net.layers(36).params{i}) ;
@@ -35,7 +25,7 @@ for i = [1 2]
   else
     sz = [2 1] ;
   end
-  net.params(p).value = zeros(sz, 'single') ;
+  net.params(p).value = initWeightsStd*randn(sz, 'single') ;
 end
 net.layers(36).block.size = size(...
   net.params(net.getParamIndex(net.layers(36).params{1})).value) ;
@@ -50,7 +40,7 @@ for i = [1 2]
   else
     sz = [2 1] ;
   end
-  net.params(p).value = zeros(sz, 'single') ;
+  net.params(p).value = initWeightsStd*randn(sz, 'single') ;
 end
 net.layers(37).block.size = size(...
   net.params(net.getParamIndex(net.layers(37).params{1})).value) ;
@@ -65,7 +55,7 @@ for i = [1 2]
   else
     sz = [2 1] ;
   end
-  net.params(p).value = zeros(sz, 'single') ;
+  net.params(p).value = initWeightsStd*randn(sz, 'single') ;
 end
 net.layers(38).block.size = size(...
   net.params(net.getParamIndex(net.layers(38).params{1})).value) ;
@@ -82,7 +72,7 @@ for i = [1 2]
     sz(end-1) = 2 ;
     filters = single(bilinear_u(32, 2, 2)) ;
     net.params(p).value = filters;
-    net.params(p).learningRate = 0 ;
+    net.params(p).learningRate = 0.2 ;
     net.params(p).weightDecay = 1 ;
   else
     sz = [2 1] ;
@@ -121,31 +111,3 @@ Description = classes;
 net.meta.classes.name = classes;
 net.meta.classes.description = Description;
 % net.meta.inputs.size(end) = 21;
-
-if exist('data\imdb.mat', 'file')
-    load data\imdb.mat
-else
-    imdb = VocSetupLiver;
-    save data\imdb imdb;
-end
-
-%%  Train Net
-
-% dbstop if error
-if ~exist('stats', 'var')
-    stats = getDatasetStatistics(imdb);
-end
-
-useGpu = 0;
-net.meta.cudnnOpts = {'cudnnworkspacelimit', 1024^3} ;
-bopts.numThreads = 1 ;
-bopts.labelStride = 1 ;
-bopts.labelOffset = 1 ;
-bopts.classWeights = ones(1,2,'single') ;
-bopts.rgbMean = stats.rgbMean ;
-bopts.useGpu = useGpu ;
-
-tic
-[net,stats] = cnn_train_dag(net, imdb, ...
-    @(imdb,batch,setName) getBatch(imdb,batch,setName, bopts), ones(useGpu));
-
