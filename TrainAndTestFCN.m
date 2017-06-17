@@ -9,8 +9,6 @@ if ~exist('vl_setupnn.m', 'file') && strcmp(pcName(1:end-1), 'david\dcorc')
 end
 
 %% Load net and repalce layers parameters if needed
-net = InitNet();
-
 if exist('data\imdb.mat', 'file')
     load data\imdb.mat
 else
@@ -18,21 +16,32 @@ else
     save data\imdb imdb;
 end
 
-%%  Train Net
-
-% dbstop if error
-if ~exist('stats', 'var')
-    stats = getDatasetStatistics(imdb);
+if ~exist('dataStats', 'var')
+    if exist('data\dataStats.mat', 'file')
+        load dataStats
+    else
+        dataStats = getDatasetStatistics(imdb);
+        save data\dataStats dataStats
+    end
 end
 
+referenceNet = 'data\fcn8_1\net-epoch-19.mat';
+referenceNet = [];
+net = InitNet8(referenceNet);
+
+%%  Train Net
+
 useGpu = 0;
-net.meta.cudnnOpts = {'cudnnworkspacelimit', 1024^3} ;
+net.meta.cudnnOpts = {'cudnnworkspacelimit', 1.5 * 1024^3} ;
 bopts.numThreads = 1 ;
 bopts.labelStride = 1 ;
 bopts.labelOffset = 1 ;
 bopts.classWeights = ones(1,2,'single') ;
-bopts.rgbMean = stats.rgbMean ;
+bopts.rgbMean = dataStats.rgbMean(1) ;
+bopts.rgbStd = sqrt( dataStats.rgbCovariance(1) );
+bopts.liverMask = dataStats.liverMask;
 bopts.useGpu = useGpu ;
+net.meta.normalization.averageImage = dataStats.rgbMean(1);
 
 tic
 [net,stats] = cnn_train_dag(net, imdb, ...

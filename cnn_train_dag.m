@@ -10,19 +10,19 @@ function [net,stats] = cnn_train_dag(net, imdb, getBatch, gpus, varargin)
 % the terms of the BSD license (see the COPYING file).
 % addpath(fullfile(vl_rootnn, 'examples'));
 
-opts.expDir = 'data\liver2' ;
+opts.expDir = 'data\fcn8_2' ;
 opts.continue = true ;
-opts.batchSize = 42 ;
+opts.batchSize = 30 ;
 opts.numSubBatches = 1 ;
 opts.train = [] ;
 opts.val = [] ;
 opts.gpus = gpus ;
 opts.prefetch = true ;
-opts.epochSize = 42;
-opts.maxValSize = 21;
-opts.numEpochs = 10 ;
-opts.learningRate = 0.001 ;
-opts.weightDecay = 0.00005 ; % we divided by 10
+opts.epochSize = 500;
+opts.maxValSize = 30;
+opts.numEpochs = 100 ;
+opts.learningRate = 0.0005 ;
+opts.weightDecay = 0.0005 ;
 
 opts.solver = [] ;  % Empty array means use the default SGD solver
 [opts, varargin] = vl_argparse(opts, varargin) ;
@@ -48,7 +48,7 @@ opts.postEpochFn = [] ;  % postEpochFn(net,params,state) called after each epoch
 opts = vl_argparse(opts, varargin) ;
 
 if ~exist(opts.expDir, 'dir'), mkdir(opts.expDir) ; end
-if isempty(opts.train), opts.train = find(imdb.images.set==1) ; end
+if isempty(opts.train), opts.train = find(imdb.images.set==1, opts.epochSize) ; end
 if isempty(opts.val), opts.val = find(imdb.images.set==2) ; end
 if isscalar(opts.train) && isnumeric(opts.train) && isnan(opts.train)
   opts.train = [] ;
@@ -96,7 +96,7 @@ for epoch=start+1:opts.numEpochs
   params = opts ;
   params.epoch = epoch ;
   params.learningRate = opts.learningRate(min(epoch, numel(opts.learningRate))) ;
-  params.train = opts.train(1:(numel(opts.train))) ; % shuffle
+  params.train = opts.train(randperm(numel(opts.train))) ; % shuffle
   params.train = params.train(1:min(opts.epochSize, numel(opts.train)));
   params.val = opts.val(randperm(numel(opts.val), min(opts.maxValSize,numel(opts.val)) )) ;
   params.imdb = imdb ;
