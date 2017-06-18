@@ -10,7 +10,7 @@ function [net,stats] = cnn_train_dag(net, imdb, getBatch, gpus, varargin)
 % the terms of the BSD license (see the COPYING file).
 % addpath(fullfile(vl_rootnn, 'examples'));
 
-opts.expDir = 'data\fcn8_2' ;
+opts.expDir = 'data\fcn8_3' ;
 opts.continue = true ;
 opts.batchSize = 30 ;
 opts.numSubBatches = 1 ;

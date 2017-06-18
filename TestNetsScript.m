@@ -6,8 +6,11 @@ if 0
     addpath(genpath('C:\Program Files\MATLAB\MatConvNet'))
     run vl_setupnn;
     dbstop if error
-    load('data\fcn8_1\net-epoch-19.mat');
+    load('data\fcn8_3\net-epoch-8.mat');
     net = dagnn.DagNN.loadobj(net) ;
+    net.mode = 'test' ;
+    net.removeLayer('objective') ;
+    net.removeLayer('accuracy') ;
 end
 load data\imdb.mat
 if ~exist('dataStats', 'var')
@@ -19,19 +22,14 @@ if ~exist('dataStats', 'var')
     end
 end
 
-% net.mode = 'test' ;
-% net.removeLayer('objective') ;
-% net.removeLayer('accuracy') ;
 %% After loading the net
 
-% im = imread('Data/Cat_Image.jpg');
-% im = imread(fullfile('data\voc11\JPEGImages', ...
-%             '2007_000027.jpg'));
-inNum = 10;
+inNum = 40;
 imPath = sprintf(imdb.paths.image.train, ['ct', imdb.images.name{inNum}]);
 segPath = sprintf(imdb.paths.segmentation.train, ['seg', imdb.images.name{inNum}]);
 im = imread(imPath);
 seg = imread(segPath);
+seg = seg(:,:,1);
 im_ = single(im(:,:,1));
 im_ = bsxfun(@minus, im_, net.meta.normalization.averageImage) ;
 im_ = im_ ./ sqrt( dataStats.rgbCovariance(1) );
@@ -43,7 +41,15 @@ scores = squeeze(gather(scores)) ;
 
 [bestScore, best] = max(scores,[],3) ;
 probMat = exp(scores(:,:,2) - bestScore) ./ sum( exp( bsxfun(@minus, scores , bestScore) ), 3);
+predictMat = (probMat > 0.5) & dataStats.liverMask;
+TP = sum( predictMat(:) & seg(:) );
+FP = sum( predictMat(:) & ~seg(:) );
+FN = sum( ~predictMat(:) & seg(:) );
+Sensitivity = TP / (TP + FN);
+PPV = TP / (TP + FP);
+Dice = 2*TP / (2*TP + FP + FN);
 % figure; imshow(im_,[]) ; colorbar
-figure; imshow(probMat,[]) ; colorbar
-figure; imshow((probMat > 0.5) & dataStats.liverMask,[]) ; colorbar
 figure; imshow(seg(:,:,1),[]) ; colorbar
+figure; imshow(probMat,[]) ; colorbar
+figure; imshow(predictMat,[]) ; colorbar
+title(sprintf('Sens = %.1f, PPV = %.1f, Dice = %.1f', Sensitivity, PPV, Dice))

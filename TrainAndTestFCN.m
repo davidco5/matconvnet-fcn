@@ -25,7 +25,7 @@ if ~exist('dataStats', 'var')
     end
 end
 
-referenceNet = 'data\fcn8_1\net-epoch-19.mat';
+% referenceNet = 'data\fcn8_1\net-epoch-19.mat';
 referenceNet = [];
 net = InitNet8(referenceNet);
 
