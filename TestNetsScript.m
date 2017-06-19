@@ -6,7 +6,7 @@ if 0
     addpath(genpath('C:\Program Files\MATLAB\MatConvNet'))
     run vl_setupnn;
     dbstop if error
-    load('data\fcn8_3\net-epoch-21.mat');
+    load('data\fcn8_4\net-epoch-1.mat');
     net = dagnn.DagNN.loadobj(net) ;
     net.mode = 'test' ;
     net.removeLayer('objective') ;
@@ -24,8 +24,8 @@ end
 
 %% After loading the net
 % imgsToRun = 1:numel(imdb.images.name);
-imgsToRun = 1093:1592;
-% imgsToRun = 1;
+% imgsToRun = 1093:1592;
+imgsToRun = 1;
 nImages = max(imgsToRun);
 sSegStats = struct('TP', [], 'FP', [], 'FN', [], 'Sens', [], 'PPV', [], 'Dice', []);
 sSegStats = repmat(sSegStats, 1, nImages);

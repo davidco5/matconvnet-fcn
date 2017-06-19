@@ -4,7 +4,8 @@ train = find(imdb.images.set == 1 & imdb.images.segmentation) ;
 
 % Class statistics
 classCounts = zeros(2,1) ;
-liverMask0 = false(imdb.images.size(:,1)');
+info = imfinfo(fullfile(sprintf(imdb.paths.segmentation.train), ['seg', imdb.images.name{1}, '.png']));
+liverMask0 = false(info.Width);
 liverSize = zeros(1, numel(train));
 for i = 1:numel(train)
   fprintf('%s: computing segmentation stats for training image %d\n', mfilename, i) ;
@@ -15,7 +16,7 @@ for i = 1:numel(train)
   liverSize(i) = sum(lb(:));
 end
 stats.classCounts = classCounts ;
-se = strel('disk',25);
+se = strel('disk',15);
 liverMask = imdilate(uint8(liverMask0), se);
 
 % Image statistics

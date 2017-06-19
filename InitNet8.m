@@ -1,14 +1,12 @@
-function net = InitNet8(referenceNet)
+function net = InitNet8(referenceNet, resizeFlag)
 % Load net, set data and initialize
-
+if ~exist('resizeFlag', 'var')
+    resizeFlag = false;
+end
 if ~isempty(referenceNet)
     load(referenceNet, 'net')
     net = dagnn.DagNN.loadobj(net) ;
     net.mode = 'normal' ;
-% 	net.addLayer('drop1', dagnn.DropOut('rate', 0.5), 'fc6x', 'fc6_drop');
-%     net.setLayerInputs('fc7', {'fc6_drop'});
-%     net.addLayer('drop2', dagnn.DropOut('rate', 0.5), 'fc7x', 'fc7_drop');
-%     net.setLayerInputs('score_fr', {'fc7_drop'});
     return
 end
 preTrainedNet = load('pascal-fcn8s-dag.mat');
@@ -78,11 +76,15 @@ for interpLayerNum = [37 41]
 %     net.layers(interpLayerNum).block.numGroups = 2;
 end
 net.layers(37).block.crop = [1 1 1 1];
-net.layers(41).block.crop = [0 0 0 0];
+net.layers(41).block.crop = [1 1 1 1];
 
 % Change 'crop' layer. This layer is indexed as 39
 net.layers(39).block.crop = [3, 3];
-net.layers(39).block.inputSizes = {[38 38 2 2], [32 32 2 2]};
+if resizeFlag
+    net.layers(39).block.inputSizes = {[22 22 2 2], [16 16 2 2]};
+else
+    net.layers(39).block.inputSizes = {[38 38 2 2], [32 32 2 2]};
+end
 
 % Change 'upsample' layer. This layer is indexed as 45
 for i = 1
@@ -91,7 +93,14 @@ for i = 1
         sz = size(net.params(p).value) ;
         sz(end) = 2 ;
         sz(end-1) = 2 ;
-        filters = single(bilinear_u(16, 2, 2)) ;
+        if resizeFlag
+            filters = single(bilinear_u(32, 2, 2)) ;
+            net.layers(45).block.upsample = 16;
+            net.layers(45).block.crop = 8*[1 1 1 1];
+        else
+            filters = single(bilinear_u(16, 2, 2)) ;
+            net.layers(45).block.crop = 12*[1 1 1 1];
+        end
         net.params(p).value = filters;
         net.params(p).learningRate = 0.2 ;
         net.params(p).weightDecay = 0.1 ;
@@ -103,12 +112,16 @@ end
 net.layers(45).block.size = size(...
     net.params(net.getParamIndex(net.layers(45).params{1})).value) ;
 net.layers(45).block.hasBias = false;
-net.layers(45).block.crop = [12 12 12 12];
 net.layers(45).block.numGroups = 2;
 
 net.vars(net.getVarIndex('bigscore')).precious = 1 ;
-net.meta.inputs.size = [512, 512, 1, 1];
-net.meta.normalization.imageSize = [512, 512, 1, 1];
+if resizeFlag
+    net.meta.inputs.size = [256, 256, 1, 1];
+    net.meta.normalization.imageSize = [256, 256, 1, 1];
+else
+    net.meta.inputs.size = [512, 512, 1, 1];
+    net.meta.normalization.imageSize = [512, 512, 1, 1];
+end
 
 % -------------------------------------------------------------------------
 % Losses and statistics

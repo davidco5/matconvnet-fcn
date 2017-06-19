@@ -9,25 +9,27 @@ if ~exist('vl_setupnn.m', 'file') && strcmp(pcName(1:end-1), 'david\dcorc')
 end
 
 %% Load net and repalce layers parameters if needed
-if exist('data\imdb.mat', 'file')
-    load data\imdb.mat
+resizeFlag = true;
+
+if exist('data\imdb_resized.mat', 'file')
+    load data\imdb_resized.mat
 else
     imdb = VocSetupLiver;
-    save data\imdb imdb;
+    save data\imdb_resized.mat imdb;
 end
 
 if ~exist('dataStats', 'var')
     if exist('data\dataStats.mat', 'file')
-        load data\dataStats
+        load data\dataStats_resized.mat
     else
         dataStats = getDatasetStatistics(imdb);
-        save data\dataStats dataStats
+        save data\dataStats_resized dataStats
     end
 end
 
-referenceNet = 'data\fcn8_3\net-epoch-20.mat';
-% referenceNet = [];
-net = InitNet8(referenceNet);
+% referenceNet = 'data\fcn8_3\net-epoch-20.mat';
+referenceNet = [];
+net = InitNet8(referenceNet, resizeFlag);
 
 %%  Train Net
 
@@ -40,7 +42,8 @@ bopts.classWeights = ones(1,2,'single') ;
 bopts.rgbMean = dataStats.rgbMean(1) ;
 bopts.rgbStd = sqrt( dataStats.rgbCovariance(1) );
 bopts.liverMask = dataStats.liverMask;
-bopts.useGpu = useGpu ;
+bopts.useGpu = useGpu;
+bopts.imageSize = imdb.images.size(:,1)';
 net.meta.normalization.averageImage = dataStats.rgbMean(1);
 
 tic

@@ -39,7 +39,7 @@ ims = zeros(opts.imageSize(1), opts.imageSize(2), 1, ...
 % space for labels
 lx = opts.labelOffset : opts.labelStride : opts.imageSize(2) ;
 ly = opts.labelOffset : opts.labelStride : opts.imageSize(1) ;
-labels = zeros(numel(ly), numel(lx), 1, numel(images)*opts.numAugments, 'single') ;
+labels = zeros([size(opts.liverMask), 1, numel(images)*opts.numAugments], 'single') ;
 classWeights = [0 opts.classWeights(:)'] ;
 
 im = cell(1,numel(images)) ;
@@ -54,7 +54,7 @@ for i=1:numel(images)
     labelsPath = sprintf(imdb.paths.segmentation.(setName), [ 'seg' imdb.images.name{images(i)} ]) ;
     rgb = vl_imreadjpeg({rgbPath}) ;
     rgb = rgb{1} ;
-    anno = imread(labelsPath) ;
+    tlabels = single( imread(labelsPath) );
   else
     rgb = im{i} ;
   end
@@ -93,10 +93,7 @@ for i=1:numel(images)
           ims(oky,okx,:,si) = rgb(sy(oky),sx(okx),:) ;
         end
 
-        tlabels = zeros(sz(1), sz(2), 'uint8') + 255 ;
-        tlabels(oky,okx) = anno(sy(oky),sx(okx)) ;
-        tlabels = single(tlabels(ly,lx)) ;
-        tlabels = mod(tlabels + 1, 256) ; % 0 = ignore, 1 = bkg
+        tlabels = tlabels(:,:,1) + 1; % 0 = ignore, 1 = bkg
         tlabels(opts.liverMask==0) = 0;
         labels(:,:,1,si) = tlabels ;
         si = si + 1 ;
