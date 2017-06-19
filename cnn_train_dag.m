@@ -10,7 +10,7 @@ function [net,stats] = cnn_train_dag(net, imdb, getBatch, gpus, varargin)
 % the terms of the BSD license (see the COPYING file).
 % addpath(fullfile(vl_rootnn, 'examples'));
 
-opts.expDir = 'data\fcn8_3' ;
+opts.expDir = 'data\fcn8_4' ;
 opts.continue = true ;
 opts.batchSize = 30 ;
 opts.numSubBatches = 1 ;
@@ -18,7 +18,7 @@ opts.train = [] ;
 opts.val = [] ;
 opts.gpus = gpus ;
 opts.prefetch = true ;
-opts.epochSize = 500;
+opts.epochSize = 240;
 opts.maxValSize = 50;
 opts.numEpochs = 100 ;
 opts.learningRate = 0.0001 ;
@@ -48,7 +48,7 @@ opts.postEpochFn = [] ;  % postEpochFn(net,params,state) called after each epoch
 opts = vl_argparse(opts, varargin) ;
 
 if ~exist(opts.expDir, 'dir'), mkdir(opts.expDir) ; end
-if isempty(opts.train), opts.train = find(imdb.images.set==1, opts.epochSize) ; end
+if isempty(opts.train), opts.train = find(imdb.images.set==1) ; end
 if isempty(opts.val), opts.val = find(imdb.images.set==2) ; end
 if isscalar(opts.train) && isnumeric(opts.train) && isnan(opts.train)
   opts.train = [] ;

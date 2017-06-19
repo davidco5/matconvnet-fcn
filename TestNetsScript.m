@@ -6,7 +6,7 @@ if 0
     addpath(genpath('C:\Program Files\MATLAB\MatConvNet'))
     run vl_setupnn;
     dbstop if error
-    load('data\fcn8_3\net-epoch-19.mat');
+    load('data\fcn8_3\net-epoch-21.mat');
     net = dagnn.DagNN.loadobj(net) ;
     net.mode = 'test' ;
     net.removeLayer('objective') ;
@@ -24,7 +24,7 @@ end
 
 %% After loading the net
 % imgsToRun = 1:numel(imdb.images.name);
-imgsToRun = 1:500;
+imgsToRun = 1093:1592;
 % imgsToRun = 1;
 nImages = max(imgsToRun);
 sSegStats = struct('TP', [], 'FP', [], 'FN', [], 'Sens', [], 'PPV', [], 'Dice', []);
@@ -65,7 +65,8 @@ meanPPV = mean([sSegStats(imgsToRun).PPV])
 meanDice = mean([sSegStats(imgsToRun).Dice])
 
 % figure; imshow(im_,[]) ; colorbar
-figure; imshow(seg(:,:,1),[]) ; colorbar
-figure; imshow(probMat,[]) ; colorbar
-figure; imshow(predictMat,[]) ; colorbar
-title(sprintf('Sens = %.2f, PPV = %.2f, Dice = %.2f', sSegStats(imNum).Sens, sSegStats(imNum).PPV, sSegStats(imNum).Dice))
+% figure; imshow(probMat,[]) ; colorbar
+figure; subplot(1,2,1); imshow(predictMat,[])
+title(sprintf('Sens = %.2f, PPV = %.2f, Dice = %.2f', sSegStats(imNum).Sens, sSegStats(imNum).PPV, sSegStats(imNum).Dice), 'fontsize', 16)
+subplot(1,2,2); imshow(seg(:,:,1),[])
+title('Ground truth', 'fontsize', 16)
