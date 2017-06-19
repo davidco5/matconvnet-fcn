@@ -18,7 +18,7 @@ end
 
 if ~exist('dataStats', 'var')
     if exist('data\dataStats.mat', 'file')
-        load dataStats
+        load data\dataStats
     else
         dataStats = getDatasetStatistics(imdb);
         save data\dataStats dataStats

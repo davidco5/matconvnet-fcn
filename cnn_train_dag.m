@@ -19,9 +19,9 @@ opts.val = [] ;
 opts.gpus = gpus ;
 opts.prefetch = true ;
 opts.epochSize = 500;
-opts.maxValSize = 30;
+opts.maxValSize = 50;
 opts.numEpochs = 100 ;
-opts.learningRate = 0.0005 ;
+opts.learningRate = 0.0001 ;
 opts.weightDecay = 0.0005 ;
 
 opts.solver = [] ;  % Empty array means use the default SGD solver

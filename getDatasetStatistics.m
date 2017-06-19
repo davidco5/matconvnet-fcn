@@ -15,7 +15,7 @@ for i = 1:numel(train)
   liverSize(i) = sum(lb(:));
 end
 stats.classCounts = classCounts ;
-se = strel('disk',20);
+se = strel('disk',25);
 liverMask = imdilate(uint8(liverMask0), se);
 
 % Image statistics

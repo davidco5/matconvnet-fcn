@@ -4,7 +4,7 @@ opts.dataDir = fullfile('data') ;
 opts.archiveDir = fullfile('data','archives') ;
 opts.includeDetection = false ;
 opts.includeSegmentation = true ;
-opts.includeTest = false ;
+opts.includeTest = true ;
 opts = vl_argparse(opts, varargin) ;
 
 % % Download data
