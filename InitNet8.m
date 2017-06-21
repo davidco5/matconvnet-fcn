@@ -18,8 +18,9 @@ net.layers(1).block.size(3) = 1;
 p = net.getParamIndex(net.layers(1).params{1}) ;
 net.params(p).value = sum(net.params(p).value, 3);
 
-padSizeVector = 2 * ones(1,numel(net.layers)-1);
-padSizeVector([32 , 34, 36, 38 ]) = 0;     %% Specify the indices of the convolution layers that do not require padding
+padSizeVector = 1 * ones(1,numel(net.layers)-1);
+padSizeVector([32 , 34, 36, 38 42]) = 0;     %% Specify the indices of the convolution layers that do not require padding
+padSizeVector(32) = 3;
 
 for i = 1:numel(net.layers)-1
     if (isa(net.layers(i).block, 'dagnn.Conv') && net.layers(i).block.hasBias)
@@ -32,10 +33,12 @@ for i = 1:numel(net.layers)-1
     end
 end
 
+% pool layers pad
 net.layers(5 ).block.pad = [0,0,0,0];
 net.layers(10).block.pad = [0,0,0,0];
+net.layers(17).block.pad = [0,0,0,0];
+net.layers(24).block.pad = [0,0,0,0];
 net.layers(31).block.pad = [0,0,0,0];
-net.layers(42).block.pad = [0,0,0,0];
 
 % Change 'score_fr' layer output. This layer is indexed as 36
 for convLayerNum = [36 38 42]
@@ -79,12 +82,13 @@ net.layers(37).block.crop = [1 1 1 1];
 net.layers(41).block.crop = [1 1 1 1];
 
 % Change 'crop' layer. This layer is indexed as 39
-net.layers(39).block.crop = [3, 3];
-if resizeFlag
-    net.layers(39).block.inputSizes = {[22 22 2 2], [16 16 2 2]};
-else
-    net.layers(39).block.inputSizes = {[38 38 2 2], [32 32 2 2]};
-end
+% net.layers(39).block.crop = [3, 3];
+% if resizeFlag
+%     net.layers(39).block.inputSizes = {[22 22 2 2], [16 16 2 2]};
+% else
+%     net.layers(39).block.inputSizes = {[38 38 2 2], [32 32 2 2]};
+% end
+% net.layers(43).block.crop = [1, 1];
 
 % Change 'upsample' layer. This layer is indexed as 45
 for i = 1
@@ -99,7 +103,7 @@ for i = 1
             net.layers(45).block.crop = 8*[1 1 1 1];
         else
             filters = single(bilinear_u(16, 2, 2)) ;
-            net.layers(45).block.crop = 12*[1 1 1 1];
+            net.layers(45).block.crop = 4*[1 1 1 1];
         end
         net.params(p).value = filters;
         net.params(p).learningRate = 0.2 ;
@@ -114,7 +118,7 @@ net.layers(45).block.size = size(...
 net.layers(45).block.hasBias = false;
 net.layers(45).block.numGroups = 2;
 
-net.vars(net.getVarIndex('bigscore')).precious = 1 ;
+net.vars(net.getVarIndex('bigscore')).precious = 0;
 if resizeFlag
     net.meta.inputs.size = [256, 256, 1, 1];
     net.meta.normalization.imageSize = [256, 256, 1, 1];
@@ -126,6 +130,10 @@ end
 % -------------------------------------------------------------------------
 % Losses and statistics
 % -------------------------------------------------------------------------
+net.removeLayer('crop') ;
+net.setLayerInputs('fuse', {'score2', 'score_pool4'});
+net.removeLayer('cropx') ;
+net.setLayerInputs('fusex', {'score4', 'score_pool3'});
 net.removeLayer('cropxx') ;
 
 net.addLayer('drop1', dagnn.DropOut('rate', 0.5), 'fc6x', 'fc6_drop');
