@@ -6,16 +6,17 @@ if 0
     addpath(genpath('C:\Program Files\MATLAB\MatConvNet'))
     run vl_setupnn;
     dbstop if error
-    load('data\fcn8_4\net-epoch-1.mat');
+    load('data\fcn8_3\net-epoch-21.mat');
     net = dagnn.DagNN.loadobj(net) ;
     net.mode = 'test' ;
     net.removeLayer('objective') ;
     net.removeLayer('accuracy') ;
+    net.vars(net.getVarIndex('bigscore')).precious = 1;
 end
 load data\imdb.mat
 if ~exist('dataStats', 'var')
     if exist('data\dataStats.mat', 'file')
-        load data\dataStats
+        load data\dataStats.mat
     else
         dataStats = getDatasetStatistics(imdb);
         save data\dataStats dataStats
@@ -25,7 +26,7 @@ end
 %% After loading the net
 % imgsToRun = 1:numel(imdb.images.name);
 % imgsToRun = 1093:1592;
-imgsToRun = 1;
+imgsToRun = 40;
 nImages = max(imgsToRun);
 sSegStats = struct('TP', [], 'FP', [], 'FN', [], 'Sens', [], 'PPV', [], 'Dice', []);
 sSegStats = repmat(sSegStats, 1, nImages);
@@ -40,7 +41,7 @@ for imNum = imgsToRun
     im_ = single(im(:,:,1));
     im_ = bsxfun(@minus, im_, net.meta.normalization.averageImage) ;
     im_ = im_ ./ sqrt( dataStats.rgbCovariance(1) );
-    
+%     im_ = im_ * 0; im_(256:257,256:257) = 1;
     net.eval({'data', im_}) ;
     
     scores = net.vars(net.getVarIndex('bigscore')).value ;
@@ -65,7 +66,7 @@ meanPPV = mean([sSegStats(imgsToRun).PPV])
 meanDice = mean([sSegStats(imgsToRun).Dice])
 
 % figure; imshow(im_,[]) ; colorbar
-% figure; imshow(probMat,[]) ; colorbar
+figure; imshow(probMat,[]) ; colorbar
 figure; subplot(1,2,1); imshow(predictMat,[])
 title(sprintf('Sens = %.2f, PPV = %.2f, Dice = %.2f', sSegStats(imNum).Sens, sSegStats(imNum).PPV, sSegStats(imNum).Dice), 'fontsize', 16)
 subplot(1,2,2); imshow(seg(:,:,1),[])

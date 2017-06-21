@@ -8,7 +8,7 @@ classdef SegmentationLoss < dagnn.Loss
           backgndIdxs = double( labels == 1 );
           liverIdxs = double( labels == 2 );
           instanceWeights(:,:,1,imgNum) = instanceWeights(:,:,1,imgNum) + backgndIdxs ./ sum(backgndIdxs(:));
-          instanceWeights(:,:,1,imgNum) = instanceWeights(:,:,1,imgNum) + liverIdxs ./ sum(liverIdxs(:));
+          instanceWeights(:,:,1,imgNum) = instanceWeights(:,:,1,imgNum) + 2*liverIdxs ./ sum(liverIdxs(:));
       end
       outputs{1} = vl_nnloss(inputs{1}, inputs{2}, [], ...
                              'loss', obj.loss, ...
@@ -26,7 +26,7 @@ classdef SegmentationLoss < dagnn.Loss
           backgndIdxs = double( labels == 1 );
           liverIdxs = double( labels == 2 );
           instanceWeights(:,:,1,imgNum) = instanceWeights(:,:,1,imgNum) + backgndIdxs ./ sum(backgndIdxs(:));
-          instanceWeights(:,:,1,imgNum) = instanceWeights(:,:,1,imgNum) + liverIdxs ./ sum(liverIdxs(:));
+          instanceWeights(:,:,1,imgNum) = instanceWeights(:,:,1,imgNum) + 2*liverIdxs ./ sum(liverIdxs(:));
       end
       derInputs{1} = vl_nnloss(inputs{1}, inputs{2}, derOutputs{1}, ...
                                'loss', obj.loss, ...

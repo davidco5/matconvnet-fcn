@@ -21,7 +21,7 @@ opts.prefetch = true ;
 opts.epochSize = 240;
 opts.maxValSize = 50;
 opts.numEpochs = 100 ;
-opts.learningRate = 0.001 ;
+opts.learningRate = 0.0005 ;
 opts.weightDecay = 0.0005 ;
 
 opts.solver = [] ;  % Empty array means use the default SGD solver

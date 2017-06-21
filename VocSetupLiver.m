@@ -5,6 +5,7 @@ opts.archiveDir = fullfile('data','archives') ;
 opts.includeDetection = false ;
 opts.includeSegmentation = true ;
 opts.includeTest = true ;
+opts.resizeFlag = false;
 opts = vl_argparse(opts, varargin) ;
 
 % % Download data
@@ -12,9 +13,15 @@ opts = vl_argparse(opts, varargin) ;
 
 % Source images and classes
 cFoldNames = {'ct', 'seg'};
-imdb.paths.image.train = esc( fullfile(opts.dataDir, 'Train', 'ct - resized', '%s.png') );
-imdb.paths.image.val = esc( fullfile(opts.dataDir, 'Val', 'ct - resized', '%s.png') );
-imdb.paths.image.test = esc( fullfile(opts.dataDir, 'Test', 'ct - resized', '%s.png') );
+if opts.resizeFlag
+    imdb.paths.image.train = esc( fullfile(opts.dataDir, 'Train', 'ct - resized', '%s.png') );
+    imdb.paths.image.val = esc( fullfile(opts.dataDir, 'Val', 'ct - resized', '%s.png') );
+    imdb.paths.image.test = esc( fullfile(opts.dataDir, 'Test', 'ct - resized', '%s.png') );
+else
+    imdb.paths.image.train = esc( fullfile(opts.dataDir, 'Train', 'ct', '%s.png') );
+    imdb.paths.image.val = esc( fullfile(opts.dataDir, 'Val', 'ct', '%s.png') );
+    imdb.paths.image.test = esc( fullfile(opts.dataDir, 'Test', 'ct', '%s.png') );
+end
 imdb.paths.segmentation.train = esc( fullfile(opts.dataDir, 'Train', 'seg', '%s.png') );
 imdb.paths.segmentation.val = esc( fullfile(opts.dataDir, 'Val', 'seg', '%s.png') );
 imdb.paths.segmentation.test = esc( fullfile(opts.dataDir, 'Test', 'seg', '%s.png') );
