@@ -6,7 +6,7 @@ opts.imageSize = [512, 512];
 opts.numAugments = 1 ;
 opts.transformation = 'none' ;
 opts.rgbMean = [] ;
-opts.rgbVariance = zeros(0,3,'single') ;
+opts.rgbStd = ones(1,'single') ;
 opts.labelStride = 1 ;
 opts.labelOffset = 0 ;
 opts.classWeights = ones(1,2,'single') ;
@@ -14,6 +14,7 @@ opts.interpolation = 'bilinear' ;
 opts.numThreads = 1 ;
 opts.prefetch = false ;
 opts.useGpu = true ;
+opts.liverMask = true(opts.imageSize);
 opts = vl_argparse(opts, varargin);
 
 
@@ -24,21 +25,21 @@ if opts.prefetch
   return ;
 end
 
-if ~isempty(opts.rgbVariance) && isempty(opts.rgbMean)
-  opts.rgbMean = single([128;128;128]) ;
-end
-if ~isempty(opts.rgbMean)
-  opts.rgbMean = reshape(opts.rgbMean, [1 1 3]) ;
-end
+% if ~isempty(opts.rgbVariance) && isempty(opts.rgbMean)
+%   opts.rgbMean = single([128;128;128]) ;
+% end
+% if ~isempty(opts.rgbMean)
+%   opts.rgbMean = reshape(opts.rgbMean, [1 1 3]) ;
+% end
 
 % space for images
-ims = zeros(opts.imageSize(1), opts.imageSize(2), 3, ...
+ims = zeros(opts.imageSize(1), opts.imageSize(2), 1, ...
   numel(images)*opts.numAugments, 'single') ;
 
 % space for labels
 lx = opts.labelOffset : opts.labelStride : opts.imageSize(2) ;
 ly = opts.labelOffset : opts.labelStride : opts.imageSize(1) ;
-labels = zeros(numel(ly), numel(lx), 1, numel(images)*opts.numAugments, 'single') ;
+labels = zeros([size(opts.liverMask), 1, numel(images)*opts.numAugments], 'single') ;
 classWeights = [0 opts.classWeights(:)'] ;
 
 im = cell(1,numel(images)) ;
@@ -53,12 +54,12 @@ for i=1:numel(images)
     labelsPath = sprintf(imdb.paths.segmentation.(setName), [ 'seg' imdb.images.name{images(i)} ]) ;
     rgb = vl_imreadjpeg({rgbPath}) ;
     rgb = rgb{1} ;
-    anno = imread(labelsPath) ;
+    tlabels = single( imread(labelsPath) );
   else
     rgb = im{i} ;
   end
-  if size(rgb,3) == 1
-    rgb = cat(3, rgb, rgb, rgb) ;
+  if size(rgb,3) == 3
+    rgb = rgb(:,:,1) ;
   end
 
 %   if size(rgb,1)==512
@@ -87,15 +88,13 @@ for i=1:numel(images)
         okx = find(1 <= sx & sx <= w) ;
         oky = find(1 <= sy & sy <= h) ;
         if ~isempty(opts.rgbMean)
-          ims(oky,okx,:,si) = bsxfun(@minus, rgb(sy(oky),sx(okx),:), opts.rgbMean) ;
+          ims(oky,okx,:,si) = ( bsxfun(@minus, rgb(sy(oky),sx(okx),:), opts.rgbMean) ) / opts.rgbStd;
         else
           ims(oky,okx,:,si) = rgb(sy(oky),sx(okx),:) ;
         end
 
-        tlabels = zeros(sz(1), sz(2), 'uint8') + 255 ;
-        tlabels(oky,okx) = anno(sy(oky),sx(okx)) ;
-        tlabels = single(tlabels(ly,lx)) ;
-        tlabels = mod(tlabels + 1, 256) ; % 0 = ignore, 1 = bkg
+        tlabels = tlabels(:,:,1) + 1; % 0 = ignore, 1 = bkg
+        tlabels(opts.liverMask==0) = 0;
         labels(:,:,1,si) = tlabels ;
         si = si + 1 ;
       end

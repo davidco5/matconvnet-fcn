@@ -17,7 +17,7 @@ classdef SegmentationAccuracy < dagnn.Loss
       ok = labels > 0 ;
       numPixels = sum(ok(:)) ;
       obj.confusion = obj.confusion + ...
-        accumarray([labels(ok),predictions(ok)],1,[21 21]) ;
+        accumarray([labels(ok),predictions(ok)],1,[2 2]) ;
 
       % compute various statistics of the confusion matrix
       pos = sum(obj.confusion,2) ;

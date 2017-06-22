@@ -9,25 +9,25 @@ if ~exist('vl_setupnn.m', 'file') && strcmp(pcName(1:end-1), 'david\dcorc')
 end
 
 %% Load net and repalce layers parameters if needed
-resizeFlag = false;
+resizeFlag = true;
+fileEndStr = {'', '_resized'};
+fileEndStr = fileEndStr{resizeFlag+1};
 
-if exist('data\imdb.mat', 'file')
-    load data\imdb.mat
+if exist(['data\imdb', fileEndStr, '.mat'], 'file')
+    load(['data\imdb', fileEndStr, '.mat'])
 else
-    imdb = VocSetupLiver;
-    save data\imdb.mat imdb;
+    imdb = VocSetupLiver(resizeFlag);
+    save(['data\imdb', fileEndStr, '.mat'], imdb);
 end
 
-if ~exist('dataStats', 'var')
-    if exist('data\dataStats.mat', 'file')
-        load data\dataStats.mat
-    else
-        dataStats = getDatasetStatistics(imdb);
-        save data\dataStats dataStats
-    end
+if exist(['data\dataStats', fileEndStr, '.mat'], 'file')
+    load(['data\dataStats', fileEndStr, '.mat'])
+else
+    dataStats = getDatasetStatistics(imdb);
+    save(['data\dataStats', fileEndStr, '.mat'], dataStats)
 end
 
-% referenceNet = 'data\fcn8_3\net-epoch-20.mat';
+% referenceNet = 'data\fcn8_repad\net-epoch-37.mat';
 referenceNet = [];
 net = InitNet8(referenceNet, resizeFlag);
 

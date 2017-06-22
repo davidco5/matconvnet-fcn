@@ -10,17 +10,18 @@ function [net,stats] = cnn_train_dag(net, imdb, getBatch, gpus, varargin)
 % the terms of the BSD license (see the COPYING file).
 % addpath(fullfile(vl_rootnn, 'examples'));
 
-opts.expDir = 'data' ;
+opts.expDir = 'data\fcn8_resized' ;
 opts.continue = true ;
-opts.batchSize = 21 ;
+opts.batchSize = 30 ;
 opts.numSubBatches = 1 ;
 opts.train = [] ;
 opts.val = [] ;
 opts.gpus = gpus ;
 opts.prefetch = true ;
-opts.epochSize = inf;
-opts.numEpochs = 10 ;
-opts.learningRate = 0.001 ;
+opts.epochSize = 240;
+opts.maxValSize = 50;
+opts.numEpochs = 100 ;
+opts.learningRate = 0.0005 ;
 opts.weightDecay = 0.0005 ;
 
 opts.solver = [] ;  % Empty array means use the default SGD solver
@@ -47,8 +48,8 @@ opts.postEpochFn = [] ;  % postEpochFn(net,params,state) called after each epoch
 opts = vl_argparse(opts, varargin) ;
 
 if ~exist(opts.expDir, 'dir'), mkdir(opts.expDir) ; end
-if isempty(opts.train), opts.train = find(imdb.images.set==1, opts.batchSize) ; end % TO DO: remove opts.batchSize
-if isempty(opts.val), opts.val = find(imdb.images.set==2, opts.batchSize) ; end % TO DO: remove opts.batchSize
+if isempty(opts.train), opts.train = find(imdb.images.set==1) ; end
+if isempty(opts.val), opts.val = find(imdb.images.set==2) ; end
 if isscalar(opts.train) && isnumeric(opts.train) && isnan(opts.train)
   opts.train = [] ;
 end
@@ -97,13 +98,15 @@ for epoch=start+1:opts.numEpochs
   params.learningRate = opts.learningRate(min(epoch, numel(opts.learningRate))) ;
   params.train = opts.train(randperm(numel(opts.train))) ; % shuffle
   params.train = params.train(1:min(opts.epochSize, numel(opts.train)));
-  params.val = opts.val(randperm(numel(opts.val))) ;
+  params.val = opts.val(randperm(numel(opts.val), min(opts.maxValSize,numel(opts.val)) )) ;
   params.imdb = imdb ;
   params.getBatch = getBatch ;
 
   if numel(opts.gpus) <= 1
+	tic
     [net, state] = processEpoch(net, state, params, 'train') ;
     [net, state] = processEpoch(net, state, params, 'val') ;
+    toc
     if ~evaluateMode
       saveState(modelPath(epoch), net, state) ;
     end

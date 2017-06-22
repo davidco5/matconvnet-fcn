@@ -4,7 +4,8 @@ opts.dataDir = fullfile('data') ;
 opts.archiveDir = fullfile('data','archives') ;
 opts.includeDetection = false ;
 opts.includeSegmentation = true ;
-opts.includeTest = false ;
+opts.includeTest = true ;
+opts.resizeFlag = false;
 opts = vl_argparse(opts, varargin) ;
 
 % % Download data
@@ -12,16 +13,22 @@ opts = vl_argparse(opts, varargin) ;
 
 % Source images and classes
 cFoldNames = {'ct', 'seg'};
-imdb.paths.image.train = esc( fullfile(opts.dataDir, 'Train', 'ct', '%s.png') );
-imdb.paths.image.val = esc( fullfile(opts.dataDir, 'Val', 'ct', '%s.png') );
-imdb.paths.image.test = esc( fullfile(opts.dataDir, 'Test', 'ct', '%s.png') );
+if opts.resizeFlag
+    imdb.paths.image.train = esc( fullfile(opts.dataDir, 'Train', 'ct - resized', '%s.png') );
+    imdb.paths.image.val = esc( fullfile(opts.dataDir, 'Val', 'ct - resized', '%s.png') );
+    imdb.paths.image.test = esc( fullfile(opts.dataDir, 'Test', 'ct - resized', '%s.png') );
+else
+    imdb.paths.image.train = esc( fullfile(opts.dataDir, 'Train', 'ct', '%s.png') );
+    imdb.paths.image.val = esc( fullfile(opts.dataDir, 'Val', 'ct', '%s.png') );
+    imdb.paths.image.test = esc( fullfile(opts.dataDir, 'Test', 'ct', '%s.png') );
+end
 imdb.paths.segmentation.train = esc( fullfile(opts.dataDir, 'Train', 'seg', '%s.png') );
 imdb.paths.segmentation.val = esc( fullfile(opts.dataDir, 'Val', 'seg', '%s.png') );
 imdb.paths.segmentation.test = esc( fullfile(opts.dataDir, 'Test', 'seg', '%s.png') );
 imdb.sets.id = uint8([1 2 3]) ;
 imdb.sets.name = {'train', 'val', 'test'} ;
 imdb.classes.id = uint8(1:2) ;
-imdb.classes.name = {'Liver', 'NotLiver'} ;
+imdb.classes.name = {'NotLiver', 'Liver'} ;
 imdb.classes.images = cell(1,2) ;
 imdb.images.id = [] ;
 imdb.images.name = {} ;
@@ -37,7 +44,7 @@ imdb.images.set = uint8(imdb.images.set) ;
 function imdb = addImageSet(opts, imdb, setName, setCode, cFoldNames)
 % -------------------------------------------------------------------------
 j = length(imdb.images.id) ;
-cImageSet = dir(fullfile(opts.dataDir, setName, cFoldNames{1}, '*.png'));
+cImageSet = dir(fullfile(sprintf(imdb.paths.image.(setName)), '*.png'));
 for i=1:length(cImageSet)
     imdb.images.id(j+i) = j+i;
     imdb.images.set(j+i) = setCode ;
@@ -48,7 +55,7 @@ for i=1:length(cImageSet)
     else
         imdb.images.segmentation(j+i) = false ;
     end
-    info = imfinfo(fullfile(opts.dataDir, setName, cFoldNames{1}, cImageSet(i).name));
+    info = imfinfo(fullfile(sprintf(imdb.paths.image.(setName)), cImageSet(i).name));
     imdb.images.size(:,i+j) = uint16([info.Width ; info.Height]) ;
 end
 
