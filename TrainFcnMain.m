@@ -17,18 +17,18 @@ if exist(['data\imdb', fileEndStr, '.mat'], 'file')
     load(['data\imdb', fileEndStr, '.mat'])
 else
     imdb = VocSetupLiver(resizeFlag);
-    save(['data\imdb', fileEndStr, '.mat'], imdb);
+    save(['data\imdb', fileEndStr, '.mat'], 'imdb');
 end
 
 if exist(['data\dataStats', fileEndStr, '.mat'], 'file')
     load(['data\dataStats', fileEndStr, '.mat'])
 else
     dataStats = getDatasetStatistics(imdb);
-    save(['data\dataStats', fileEndStr, '.mat'], dataStats)
+    save(['data\dataStats', fileEndStr, '.mat'], 'dataStats')
 end
 
 % referenceNet = 'data\fcn8_repad\net-epoch-37.mat';
-referenceNet = 'data\fcn8_resized\net-epoch-1.mat';
+referenceNet = 'data\fcn8_resized3\net-epoch-20.mat';
 % referenceNet = [];
 net = InitNet8(referenceNet, resizeFlag);
 
@@ -41,10 +41,11 @@ bopts.labelStride = 1 ;
 bopts.labelOffset = 1 ;
 bopts.classWeights = ones(1,2,'single') ;
 bopts.rgbMean = dataStats.rgbMean(1) ;
-bopts.rgbStd = 10* sqrt( dataStats.rgbCovariance(1) );
+bopts.rgbStd = sqrt( dataStats.rgbCovariance(1) );
 % bopts.liverMask = dataStats.liverMask;
 bopts.useGpu = useGpu;
 bopts.imageSize = imdb.images.size(:,1)';
+bopts.backGndSeg = dataStats.backGndSeg;
 net.meta.normalization.averageImage = dataStats.rgbMean(1);
 
 tic

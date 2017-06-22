@@ -4,6 +4,10 @@ classdef SegmentationLoss < dagnn.Loss
     function outputs = forward(obj, inputs, params)
       instanceWeights = zeros(size(inputs{2}));
       for imgNum = 1:size(instanceWeights,4)
+          scoreDiff = abs( inputs{1}(:,:,2,imgNum) - inputs{1}(:,:,1,imgNum) );
+          normMat = min(scoreDiff, 10) ./ scoreDiff;
+          inputs{1}(:,:,:,imgNum) = bsxfun(@times, inputs{1}(:,:,:,imgNum), normMat);
+          
           labels = inputs{2}(:,:,1,imgNum);
           backgndIdxs = double( labels == 1 );
           liverIdxs = double( labels == 2 );
@@ -22,6 +26,10 @@ classdef SegmentationLoss < dagnn.Loss
     function [derInputs, derParams] = backward(obj, inputs, params, derOutputs)
       instanceWeights = zeros(size(inputs{2}));
       for imgNum = 1:size(instanceWeights,4)
+          scoreDiff = abs( inputs{1}(:,:,2,imgNum) - inputs{1}(:,:,1,imgNum) );
+          normMat = min(scoreDiff, 10) ./ scoreDiff;
+          inputs{1}(:,:,:,imgNum) = bsxfun(@times, inputs{1}(:,:,:,imgNum), normMat);
+          
           labels = inputs{2}(:,:,1,imgNum);
           backgndIdxs = double( labels == 1 );
           liverIdxs = double( labels == 2 );

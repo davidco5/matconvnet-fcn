@@ -6,7 +6,7 @@ if 0
     addpath(genpath('C:\Program Files\MATLAB\MatConvNet'))
     run vl_setupnn;
     dbstop if error
-    load('data\fcn8_resized3\net-epoch-1.mat');
+    load('data\fcn8_normFilt\\\net-epoch-12.mat');
     net = dagnn.DagNN.loadobj(net) ;
     net.mode = 'test' ;
     net.removeLayer('objective') ;

@@ -7,6 +7,11 @@ if ~isempty(referenceNet)
     load(referenceNet, 'net')
     net = dagnn.DagNN.loadobj(net) ;
     net.mode = 'normal' ;
+    net.params(40).value = net.params(40).value / sum(net.params(40).value(:))*2;
+    net.params(37).value(:,:,2,1) = zeros(4);
+    net.params(37).value(:,:,1,2) = zeros(4);
+    net.params(33).value(:,:,2,1) = zeros(4);
+    net.params(33).value(:,:,1,2) = zeros(4);
     return
 end
 preTrainedNet = load('pascal-fcn8s-dag.mat');
@@ -70,8 +75,8 @@ for interpLayerNum = [37 41]
             sz = [] ;
             net.params(p).value = [] ;
         end
-        net.params(p).learningRate = 0.2 ;
-        net.params(p).weightDecay = 0.1 ;
+%         net.params(p).learningRate = 0.2 ;
+%         net.params(p).weightDecay = 0.1 ;
     end
     net.layers(interpLayerNum).block.size = size(...
         net.params(net.getParamIndex(net.layers(interpLayerNum).params{1})).value) ;
@@ -105,9 +110,9 @@ for i = 1
             filters = single(bilinear_u(16, 2, 2)) ;
             net.layers(45).block.crop = 4*[1 1 1 1];
         end
-        net.params(p).value = filters;
-        net.params(p).learningRate = 0.2 ;
-        net.params(p).weightDecay = 0.1 ;
+        net.params(p).value = filters/sum(filters(:));
+%         net.params(p).learningRate = 0.2 ;
+%         net.params(p).weightDecay = 0.1 ;
     else
         sz = [] ;
         net.params(p).value = [];
