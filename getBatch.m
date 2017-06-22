@@ -95,6 +95,11 @@ for i=1:numel(images)
 
         tlabels = tlabels(:,:,1) + 1; % 0 = ignore, 1 = bkg
         tlabels(opts.liverMask==0) = 0;
+        backGndSeg0 = regiongrowing(im2double(rgb), 1, 1, 1/255);
+        backGndSeg = imresize(backGndSeg0, [512,512]) > 0.5;
+        if sum(backGndSeg(:))/numel(backGndSeg) < 0.7
+            tlabels(backGndSeg) = 0;
+        end
         labels(:,:,1,si) = tlabels ;
         si = si + 1 ;
       end

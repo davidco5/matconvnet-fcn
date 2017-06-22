@@ -6,22 +6,22 @@ if 0
     addpath(genpath('C:\Program Files\MATLAB\MatConvNet'))
     run vl_setupnn;
     dbstop if error
-    load('data\fcn8_3\net-epoch-21.mat');
+    load('data\fcn8_resized3\net-epoch-1.mat');
     net = dagnn.DagNN.loadobj(net) ;
     net.mode = 'test' ;
     net.removeLayer('objective') ;
     net.removeLayer('accuracy') ;
     net.vars(net.getVarIndex('bigscore')).precious = 1;
 end
-load data\imdb.mat
-if ~exist('dataStats', 'var')
-    if exist('data\dataStats.mat', 'file')
-        load data\dataStats.mat
-    else
-        dataStats = getDatasetStatistics(imdb);
-        save data\dataStats dataStats
-    end
-end
+load data\dataStats_resized.mat
+% if ~exist('dataStats', 'var')
+%     if exist('data\dataStats.mat', 'file')
+%         load data\dataStats.mat
+%     else
+%         dataStats = getDatasetStatistics(imdb);
+%         save data\dataStats dataStats
+%     end
+% end
 
 %% After loading the net
 % imgsToRun = 1:numel(imdb.images.name);
@@ -49,7 +49,9 @@ for imNum = imgsToRun
     
     [bestScore, best] = max(scores,[],3) ;
     probMat = exp(scores(:,:,2) - bestScore) ./ sum( exp( bsxfun(@minus, scores , bestScore) ), 3);
-    predictMat = (probMat > 0.5) & dataStats.liverMask;
+    backGndSeg0 = regiongrowing(im2double(im(:,:,1)), 1, 1, 1/255);
+	backGndSeg = imresize(backGndSeg0, [512,512]) > 0.5;
+    predictMat = (probMat > 0.5) & dataStats.liverMask & ~backGndSeg;
     TP = sum( predictMat(:) & seg(:) );
     FP = sum( predictMat(:) & ~seg(:) );
     FN = sum( ~predictMat(:) & seg(:) );

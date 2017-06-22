@@ -12,7 +12,7 @@ end
 preTrainedNet = load('pascal-fcn8s-dag.mat');
 net = dagnn.DagNN.loadobj(preTrainedNet) ;
 net.mode = 'normal' ;
-initWeightsStd = 0.005;
+initWeightsStd = 0.0005;
 
 net.layers(1).block.size(3) = 1;
 p = net.getParamIndex(net.layers(1).params{1}) ;

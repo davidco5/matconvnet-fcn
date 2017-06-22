@@ -28,7 +28,8 @@ else
 end
 
 % referenceNet = 'data\fcn8_repad\net-epoch-37.mat';
-referenceNet = [];
+referenceNet = 'data\fcn8_resized\net-epoch-1.mat';
+% referenceNet = [];
 net = InitNet8(referenceNet, resizeFlag);
 
 %%  Train Net
@@ -40,7 +41,7 @@ bopts.labelStride = 1 ;
 bopts.labelOffset = 1 ;
 bopts.classWeights = ones(1,2,'single') ;
 bopts.rgbMean = dataStats.rgbMean(1) ;
-bopts.rgbStd = sqrt( dataStats.rgbCovariance(1) );
+bopts.rgbStd = 10* sqrt( dataStats.rgbCovariance(1) );
 % bopts.liverMask = dataStats.liverMask;
 bopts.useGpu = useGpu;
 bopts.imageSize = imdb.images.size(:,1)';
