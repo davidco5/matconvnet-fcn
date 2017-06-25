@@ -10,7 +10,7 @@ function [net,stats] = cnn_train_dag(net, imdb, getBatch, gpus, varargin)
 % the terms of the BSD license (see the COPYING file).
 % addpath(fullfile(vl_rootnn, 'examples'));
 
-opts.expDir = 'data\fcn8_normFilt' ;
+opts.expDir = 'data\fcn8_repad2' ;
 opts.continue = true ;
 opts.batchSize = 30 ;
 opts.numSubBatches = 1 ;
@@ -36,7 +36,7 @@ end
 opts.momentum = 0.9 ;
 opts.saveSolverState = true ;
 opts.nesterovUpdate = false ;
-opts.randomSeed = 20 ;
+opts.randomSeed = 1 ;
 opts.profile = false ;
 opts.parameterServer.method = 'mmap' ;
 opts.parameterServer.prefix = 'mcn' ;

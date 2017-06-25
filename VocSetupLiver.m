@@ -50,7 +50,7 @@ for i=1:length(cImageSet)
     imdb.images.set(j+i) = setCode ;
     imdb.images.name{j+i} = strrep( strrep(cImageSet(i).name, cFoldNames{1}, ''), '.png', '') ;
     imdb.images.classification(i+j) = false ;
-    if exist(fullfile(opts.dataDir, setName, cFoldNames{2}, [cFoldNames{2}, imdb.images.name{j+i}, '.png']), 'file')
+    if ~strcmpi(setName, 'test') && exist(fullfile(opts.dataDir, setName, cFoldNames{2}, [cFoldNames{2}, imdb.images.name{j+i}, '.png']), 'file')
         imdb.images.segmentation(j+i) = true ;
     else
         imdb.images.segmentation(j+i) = false ;

@@ -6,14 +6,14 @@ if 0
     addpath(genpath('C:\Program Files\MATLAB\MatConvNet'))
     run vl_setupnn;
     dbstop if error
-    load('data\fcn8_normFilt\\\net-epoch-12.mat');
+    load('data\fcn8_repad2\net-epoch-16.mat');
     net = dagnn.DagNN.loadobj(net) ;
     net.mode = 'test' ;
     net.removeLayer('objective') ;
     net.removeLayer('accuracy') ;
     net.vars(net.getVarIndex('bigscore')).precious = 1;
 end
-load data\dataStats_resized.mat
+load data\dataStats.mat
 % if ~exist('dataStats', 'var')
 %     if exist('data\dataStats.mat', 'file')
 %         load data\dataStats.mat
@@ -24,24 +24,29 @@ load data\dataStats_resized.mat
 % end
 
 %% After loading the net
+r = 15;
+x = -r:r; y = x;
+[X, Y] = meshgrid(x,y);
+R = sqrt(X.^2 + Y.^2);
+interval = -1*ones(size(R));
+interval(R<14) = 0;
+interval(R<2) = 1;
 % imgsToRun = 1:numel(imdb.images.name);
 % imgsToRun = 1093:1592;
-imgsToRun = 40;
+imgsToRun = 1;
 nImages = max(imgsToRun);
 sSegStats = struct('TP', [], 'FP', [], 'FN', [], 'Sens', [], 'PPV', [], 'Dice', []);
 sSegStats = repmat(sSegStats, 1, nImages);
-dirNames = {'train', 'val'};
+dirNames = {'train', 'val', 'test'};
 for imNum = imgsToRun
     fprintf('computing segmentation stats for training image %d\n', imNum) ;
-    imPath = sprintf(imdb.paths.image.(dirNames{ceil(imNum/1092)}), ['ct', imdb.images.name{imNum}]);
-    segPath = sprintf(imdb.paths.segmentation.(dirNames{ceil(imNum/1092)}), ['seg', imdb.images.name{imNum}]);
+    imPath = sprintf(imdb.paths.image.(dirNames{imdb.images.set(imNum)}), ['ct', imdb.images.name{imNum}]);
+    segPath = sprintf(imdb.paths.segmentation.(dirNames{imdb.images.set(imNum)}), ['seg', imdb.images.name{imNum}]);
     im = imread(imPath);
-    seg = imread(segPath);
-    seg = seg(:,:,1);
     im_ = single(im(:,:,1));
     im_ = bsxfun(@minus, im_, net.meta.normalization.averageImage) ;
     im_ = im_ ./ sqrt( dataStats.rgbCovariance(1) );
-%     im_ = im_ * 0; im_(256:257,256:257) = 1;
+    %     im_ = im_ * 0; im_(256:257,256:257) = 1;
     net.eval({'data', im_}) ;
     
     scores = net.vars(net.getVarIndex('bigscore')).value ;
@@ -49,25 +54,35 @@ for imNum = imgsToRun
     
     [bestScore, best] = max(scores,[],3) ;
     probMat = exp(scores(:,:,2) - bestScore) ./ sum( exp( bsxfun(@minus, scores , bestScore) ), 3);
-    backGndSeg0 = regiongrowing(im2double(im(:,:,1)), 1, 1, 1/255);
-	backGndSeg = imresize(backGndSeg0, [512,512]) > 0.5;
-    predictMat = (probMat > 0.5) & dataStats.liverMask & ~backGndSeg;
-    TP = sum( predictMat(:) & seg(:) );
-    FP = sum( predictMat(:) & ~seg(:) );
-    FN = sum( ~predictMat(:) & seg(:) );
-    sSegStats(imNum).Sens = TP / (TP + FN);
-    sSegStats(imNum).PPV = TP / (TP + FP);
-    sSegStats(imNum).Dice = 2*TP / (2*TP + FP + FN);
-    sSegStats(imNum).TP = TP;
-    sSegStats(imNum).FP = FP;
-    sSegStats(imNum).FN = FN;
+    predictMat = (probMat > 0.5) & dataStats.liverMask & ~dataStats.backGndSeg(imNum).seg;
+    smallBlobs = bwhitmiss(uint8(predictMat), interval);
+    predictMat = predictMat & ~smallBlobs;
+    %     predictMat = imopen(uint8(predictMat), strel('disk', 5));
+    if imdb.images.set(imNum) < 3
+        seg = imread(segPath);
+        seg = seg(:,:,1);
+        TP = sum( predictMat(:) & seg(:) );
+        FP = sum( predictMat(:) & ~seg(:) );
+        FN = sum( ~predictMat(:) & seg(:) );
+        sSegStats(imNum).Sens = TP / (TP + FN);
+        sSegStats(imNum).PPV = TP / (TP + FP);
+        sSegStats(imNum).Dice = 2*TP / (2*TP + FP + FN);
+        sSegStats(imNum).TP = TP;
+        sSegStats(imNum).FP = FP;
+        sSegStats(imNum).FN = FN;
+    else
+        seg = uint8(predictMat)*255;
+        imwrite(seg, segPath)
+    end
 end
 
 meanSens = mean([sSegStats(imgsToRun).Sens])
 meanPPV = mean([sSegStats(imgsToRun).PPV])
 meanDice = mean([sSegStats(imgsToRun).Dice])
 
+% im_(seg==0)=0;
 % figure; imshow(im_,[]) ; colorbar
+% probMat(seg==0)=0;
 figure; imshow(probMat,[]) ; colorbar
 figure; subplot(1,2,1); imshow(predictMat,[])
 title(sprintf('Sens = %.2f, PPV = %.2f, Dice = %.2f', sSegStats(imNum).Sens, sSegStats(imNum).PPV, sSegStats(imNum).Dice), 'fontsize', 16)

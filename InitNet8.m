@@ -8,10 +8,6 @@ if ~isempty(referenceNet)
     net = dagnn.DagNN.loadobj(net) ;
     net.mode = 'normal' ;
     net.params(40).value = net.params(40).value / sum(net.params(40).value(:))*2;
-    net.params(37).value(:,:,2,1) = zeros(4);
-    net.params(37).value(:,:,1,2) = zeros(4);
-    net.params(33).value(:,:,2,1) = zeros(4);
-    net.params(33).value(:,:,1,2) = zeros(4);
     return
 end
 preTrainedNet = load('pascal-fcn8s-dag.mat');
