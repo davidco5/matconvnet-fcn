@@ -6,14 +6,16 @@ if 0
     addpath(genpath('C:\Program Files\MATLAB\MatConvNet'))
     run vl_setupnn;
     dbstop if error
-    load('data\fcn8_repad2\net-epoch-16.mat');
+    load('data\fcn8_repad3\net-epoch-3.mat');
     net = dagnn.DagNN.loadobj(net) ;
     net.mode = 'test' ;
     net.removeLayer('objective') ;
     net.removeLayer('accuracy') ;
     net.vars(net.getVarIndex('bigscore')).precious = 1;
+    TestNetsScript
 end
 load data\dataStats.mat
+load data\imdb.mat
 % if ~exist('dataStats', 'var')
 %     if exist('data\dataStats.mat', 'file')
 %         load data\dataStats.mat
@@ -30,18 +32,19 @@ x = -r:r; y = x;
 R = sqrt(X.^2 + Y.^2);
 interval = -1*ones(size(R));
 interval(R<14) = 0;
-interval(R<2) = 1;
+interval(R<1.4) = 1;
 % imgsToRun = 1:numel(imdb.images.name);
-% imgsToRun = 1093:1592;
-imgsToRun = 1;
+imgsToRun = 1089;
+% imgsToRun = 1092 + [1:171];
+% imgsToRun = find(imdb.images.set==3);
 nImages = max(imgsToRun);
 sSegStats = struct('TP', [], 'FP', [], 'FN', [], 'Sens', [], 'PPV', [], 'Dice', []);
 sSegStats = repmat(sSegStats, 1, nImages);
 dirNames = {'train', 'val', 'test'};
+tic
 for imNum = imgsToRun
     fprintf('computing segmentation stats for training image %d\n', imNum) ;
     imPath = sprintf(imdb.paths.image.(dirNames{imdb.images.set(imNum)}), ['ct', imdb.images.name{imNum}]);
-    segPath = sprintf(imdb.paths.segmentation.(dirNames{imdb.images.set(imNum)}), ['seg', imdb.images.name{imNum}]);
     im = imread(imPath);
     im_ = single(im(:,:,1));
     im_ = bsxfun(@minus, im_, net.meta.normalization.averageImage) ;
@@ -57,8 +60,9 @@ for imNum = imgsToRun
     predictMat = (probMat > 0.5) & dataStats.liverMask & ~dataStats.backGndSeg(imNum).seg;
     smallBlobs = bwhitmiss(uint8(predictMat), interval);
     predictMat = predictMat & ~smallBlobs;
-    %     predictMat = imopen(uint8(predictMat), strel('disk', 5));
+	predictMat = imopen(uint8(predictMat), strel('disk', 4));
     if imdb.images.set(imNum) < 3
+        segPath = sprintf(imdb.paths.segmentation.(dirNames{imdb.images.set(imNum)}), ['seg', imdb.images.name{imNum}]);
         seg = imread(segPath);
         seg = seg(:,:,1);
         TP = sum( predictMat(:) & seg(:) );
@@ -72,10 +76,11 @@ for imNum = imgsToRun
         sSegStats(imNum).FN = FN;
     else
         seg = uint8(predictMat)*255;
+        segPath = sprintf(imdb.paths.segmentation.(dirNames{imdb.images.set(imNum)}), ['ct', imdb.images.name{imNum}]);
         imwrite(seg, segPath)
     end
 end
-
+toc
 meanSens = mean([sSegStats(imgsToRun).Sens])
 meanPPV = mean([sSegStats(imgsToRun).PPV])
 meanDice = mean([sSegStats(imgsToRun).Dice])

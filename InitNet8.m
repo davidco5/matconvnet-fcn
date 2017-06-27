@@ -7,7 +7,8 @@ if ~isempty(referenceNet)
     load(referenceNet, 'net')
     net = dagnn.DagNN.loadobj(net) ;
     net.mode = 'normal' ;
-    net.params(40).value = net.params(40).value / sum(net.params(40).value(:))*2;
+    net.addLayer('drop3', dagnn.DropOut('rate', 0.5), 'conv2_1x', 'conv2_1x_drop');
+    net.setLayerInputs('conv2_2', {'conv2_1x_drop'});
     return
 end
 preTrainedNet = load('pascal-fcn8s-dag.mat');

@@ -1,12 +1,14 @@
 dbstop if error
 
-if exist('savedImages.mat', 'file')
-    load('savedImages.mat');
-end
+% load data\sSegStatsReg.mat
 
-TrainDirPath = 'data\Test\ct\';
-destinationDirPath = 'data\Test\seg - regGrow\';
-cTestImages = dir('data\Test\ct\*.png');
+TrainDirPath = 'data\val\ct\';
+originalSegDirPath = 'data\val\seg\';
+destinationDirPath = 'data\val\seg - regGrow\';
+cValImages = dir('data\val\ct\*.png');
+
+sSegStats = struct('TP', [], 'FP', [], 'FN', [], 'Sens', [], 'PPV', [], 'Dice', []);
+sSegStats = repmat(sSegStats, 1, numel(cValImages));
 
 filterSigma = 10; 
 filterSize = 7*[1 1];
@@ -14,18 +16,21 @@ filterSize = 7*[1 1];
 isQuantize = false;
 
 if ~exist('currIm', 'var')
-    currIm = 443;
+    currIm = 64;
     initialSeedX = 95;
     initalSeedY = 264;
 end
 currIm = currIm - 1;
-while currIm < numel(cTestImages)
+while currIm < numel(cValImages)
     currIm = currIm+1
     close all;
     
-    origImagePath = fullfile(TrainDirPath, cTestImages(currIm).name);
+    origImagePath = fullfile(TrainDirPath, cValImages(currIm).name);
+    segPath = fullfile(originalSegDirPath, strrep(cValImages(currIm).name, 'ct', 'seg'));
     im = imread(origImagePath);
     im = im(:,:,1);
+    seg = imread(segPath);
+    seg = seg(:,:,1);
     
     imFiltered = imgaussfilt(im , filterSigma, 'FilterSize', filterSize);
     
@@ -68,24 +73,26 @@ while currIm < numel(cTestImages)
     
     closedIm = imclose(regGrowResult , strel('disk', 8));
     closedClosedImage = imclose( imclose(closedIm , strel('disk', 4)), strel('disk', 5));
+    sSegStats(currIm) = CalcSegPerformance(closedClosedImage, seg);
     
     figure;
-    title (fullfile('Image name: ',cTestImages(currIm).name), 'fontsize',12); 
+    title (fullfile('Image name: ',cValImages(currIm).name), 'fontsize',12); 
     subplot(1,2,1)
     imshow(imMinusGrad, []);
-    title(fullfile('Image minus Gradient ( ', cTestImages(currIm).name, ')' ),'fontsize',12);
+    title(fullfile('Image minus Gradient ( ', cValImages(currIm).name, ')' ),'fontsize',10);
     subplot(1,2,2)
     imshow(closedClosedImage);
-    title('Segmentationt','fontsize',12);
+%     title('Segmentationt','fontsize',12);
+    title(sprintf('Sens = %.2f, PPV = %.2f, Dice = %.2f', sSegStats(currIm).Sens, sSegStats(currIm).PPV, sSegStats(currIm).Dice), 'fontsize', 12)
     
     questResponse = MFquestdlg([0.35 0.3], 'What would you like to do next?', 'Segmentation result menu', 'Save segmentation' , 'Repeat with Quantization', 'Add another region','Pause run');
     
     switch(questResponse)
         case 'Save segmentation'
-            destImagePath = fullfile(destinationDirPath, cTestImages(currIm).name);
-            imwrite(closedClosedImage, destImagePath); 
+            destImagePath = fullfile(destinationDirPath, cValImages(currIm).name);
+            imwrite(uint8(closedClosedImage)*255, destImagePath); 
             isQuantize = false; 
-            savedImages{currIm} = cTestImages(currIm).name;
+            savedImages{currIm} = cValImages(currIm).name;
             continue;
         case 'Repeat with Quantization'
             currIm = currIm - 1;
@@ -106,15 +113,17 @@ while currIm < numel(cTestImages)
             
             totalImageAfterClose = imclose( totalImg, strel('disk', 5));
             figure; imshow(totalImageAfterClose, [])
+            sSegStats(currIm) = CalcSegPerformance(totalImageAfterClose, seg);
+            title(sprintf('Sens = %.2f, PPV = %.2f, Dice = %.2f', sSegStats(currIm).Sens, sSegStats(currIm).PPV, sSegStats(currIm).Dice), 'fontsize', 12)
             
             advancedCoice = MFquestdlg([0.35 0.3], 'What would you like to do?' ,'Two regions menu', 'Save segmentation', 'Pause run');
             
             switch(advancedCoice)
                 case 'Save segmentation'
-                    destImagePath = fullfile(destinationDirPath, cTestImages(currIm).name);
-                    imwrite(totalImageAfterClose, destImagePath); 
+                    destImagePath = fullfile(destinationDirPath, cValImages(currIm).name);
+                    imwrite(uint8(totalImageAfterClose)*255, destImagePath); 
                     isQuantize = false;
-                    savedImages{currIm} = cTestImages(currIm).name;
+                    savedImages{currIm} = cValImages(currIm).name;
                     continue;
                 case 'Pause run'
                     pause(inf);
@@ -127,5 +136,4 @@ while currIm < numel(cTestImages)
 
 end
 
-save ('savedImages.mat', 'savedImages');
-            
+save data\sSegStatsReg.mat sSegStats

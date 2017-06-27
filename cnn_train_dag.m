@@ -10,9 +10,9 @@ function [net,stats] = cnn_train_dag(net, imdb, getBatch, gpus, varargin)
 % the terms of the BSD license (see the COPYING file).
 % addpath(fullfile(vl_rootnn, 'examples'));
 
-opts.expDir = 'data\fcn8_repad2' ;
+opts.expDir = 'data\fcn8_repad3' ;
 opts.continue = true ;
-opts.batchSize = 30 ;
+opts.batchSize = 40 ;
 opts.numSubBatches = 1 ;
 opts.train = [] ;
 opts.val = [] ;
@@ -21,7 +21,7 @@ opts.prefetch = true ;
 opts.epochSize = 240;
 opts.maxValSize = 50;
 opts.numEpochs = 100 ;
-opts.learningRate = 0.0005 ;
+opts.learningRate = 0.0001 ;
 opts.weightDecay = 0.0005 ;
 
 opts.solver = [] ;  % Empty array means use the default SGD solver

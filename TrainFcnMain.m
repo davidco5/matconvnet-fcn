@@ -27,9 +27,9 @@ else
     save(['data\dataStats', fileEndStr, '.mat'], 'dataStats')
 end
 
-% referenceNet = 'data\fcn8_repad\net-epoch-10.mat';
+referenceNet = 'data\fcn8_repad2\net-epoch-40.mat';
 % referenceNet = 'data\fcn8_3\net-epoch-20.mat';
-referenceNet = [];
+% referenceNet = [];
 net = InitNet8(referenceNet, resizeFlag);
 
 %%  Train Net
