@@ -9,8 +9,10 @@ function [net,stats] = cnn_train_dag(net, imdb, getBatch, gpus, varargin)
 % This file is part of the VLFeat library and is made available under
 % the terms of the BSD license (see the COPYING file).
 % addpath(fullfile(vl_rootnn, 'examples'));
-
-opts.expDir = 'data\fcn8_repad3' ;
+load('C:\Users\dcorc\OneDrive\TAU 2\Advanced Topics in Medical Image Processing 1\CNN_project\matconvnet-fcn\data\trainStats_repad2_epoch_40.mat')
+badTrain = unique([find([sSegStats.PPV] < 0.75), find([sSegStats.Sens] < 0.75)]);
+badTrain(badTrain > 1092) = [];
+opts.expDir = 'data\fcn8_repad4' ;
 opts.continue = true ;
 opts.batchSize = 40 ;
 opts.numSubBatches = 1 ;
@@ -22,7 +24,7 @@ opts.epochSize = 240;
 opts.maxValSize = 50;
 opts.numEpochs = 100 ;
 opts.learningRate = 0.0001 ;
-opts.weightDecay = 0.0005 ;
+opts.weightDecay = 0.00005 ;
 
 opts.solver = [] ;  % Empty array means use the default SGD solver
 [opts, varargin] = vl_argparse(opts, varargin) ;
@@ -36,7 +38,7 @@ end
 opts.momentum = 0.9 ;
 opts.saveSolverState = true ;
 opts.nesterovUpdate = false ;
-opts.randomSeed = 1 ;
+opts.randomSeed = 0;
 opts.profile = false ;
 opts.parameterServer.method = 'mmap' ;
 opts.parameterServer.prefix = 'mcn' ;
@@ -47,8 +49,9 @@ opts.plotStatistics = true;
 opts.postEpochFn = [] ;  % postEpochFn(net,params,state) called after each epoch; can return a new learning rate, 0 to stop, [] for no change
 opts = vl_argparse(opts, varargin) ;
 
+opts.train = badTrain;
 if ~exist(opts.expDir, 'dir'), mkdir(opts.expDir) ; end
-if isempty(opts.train), opts.train = find(imdb.images.set==1) ; end
+if isempty(opts.train), opts.train = [find(imdb.images.set==1), repmat(badTrain,1,7)] ; end
 if isempty(opts.val), opts.val = find(imdb.images.set==2) ; end
 if isscalar(opts.train) && isnumeric(opts.train) && isnan(opts.train)
   opts.train = [] ;

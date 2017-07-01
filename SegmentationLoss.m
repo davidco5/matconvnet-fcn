@@ -2,13 +2,13 @@ classdef SegmentationLoss < dagnn.Loss
 
   methods
     function outputs = forward(obj, inputs, params)
-%         mass = sum(sum(inputs{2} > 0,2),1) + 1 ;
+        mass = sum(sum(inputs{2} > 0,2),1) + 1 ;
       instanceWeights = zeros(size(inputs{2}));
       for imgNum = 1:size(instanceWeights,4)
           labels = inputs{2}(:,:,1,imgNum);
           backgndIdxs = double( labels == 1 );
           liverIdxs = double( labels == 2 );
-          p = 0.5;
+          p = 0.8;
           instanceWeights(:,:,1,imgNum) = instanceWeights(:,:,1,imgNum) + backgndIdxs ./ sum(p*backgndIdxs(:)+(1-p)*liverIdxs(:));
           instanceWeights(:,:,1,imgNum) = instanceWeights(:,:,1,imgNum) + liverIdxs ./ sum((1-p)*backgndIdxs(:)+p*liverIdxs(:));
       end
@@ -22,12 +22,13 @@ classdef SegmentationLoss < dagnn.Loss
     end
 
     function [derInputs, derParams] = backward(obj, inputs, params, derOutputs)
+        mass = sum(sum(inputs{2} > 0,2),1) + 1 ;
       instanceWeights = zeros(size(inputs{2}));
       for imgNum = 1:size(instanceWeights,4)
           labels = inputs{2}(:,:,1,imgNum);
           backgndIdxs = double( labels == 1 );
           liverIdxs = double( labels == 2 );
-          p = 0.5;
+          p = 0.8;
           instanceWeights(:,:,1,imgNum) = instanceWeights(:,:,1,imgNum) + backgndIdxs ./ sum(p*backgndIdxs(:)+(1-p)*liverIdxs(:));
           instanceWeights(:,:,1,imgNum) = instanceWeights(:,:,1,imgNum) + liverIdxs ./ sum((1-p)*backgndIdxs(:)+p*liverIdxs(:));
       end

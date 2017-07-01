@@ -1,21 +1,21 @@
-%%This script is meant to test the FCN-16 net
+%%This script is meant to test the FCN-8 net
 
-if 0
-	cd('C:\Users\dcorc\OneDrive\TAU 2\Advanced Topics in Medical Image Processing 1\CNN_project\matconvnet-fcn')
-    addpath(genpath(fullfile(pwd)))
-    addpath(genpath('C:\Program Files\MATLAB\MatConvNet'))
-    run vl_setupnn;
-    dbstop if error
-    load('data\fcn8_repad4\net-epoch-2.mat');
-    net = dagnn.DagNN.loadobj(net) ;
-    net.mode = 'test' ;
-    net.removeLayer('objective') ;
-    net.removeLayer('accuracy') ;
-    net.vars(net.getVarIndex('bigscore')).precious = 1;
-    TestNetsScript
-end
+cd('C:\Users\dcorc\OneDrive\TAU 2\Advanced Topics in Medical Image Processing 1\CNN_project\matconvnet-fcn')
+addpath(genpath(fullfile(pwd)))
+addpath(genpath('C:\Program Files\MATLAB\MatConvNet'))
+run vl_setupnn;
+dbstop if error
+load('data\fcn8_repad4\net-epoch-40.mat');
+net = dagnn.DagNN.loadobj(net) ;
+net.mode = 'test' ;
+net.removeLayer('objective') ;
+net.removeLayer('accuracy') ;
+net.vars(net.getVarIndex('bigscore')).precious = 1;
 load data\dataStats.mat
 load data\imdb.mat
+
+%% Enter here the image number(s) from the imdb struct that you'd like to test
+imgsToRun = 40;
 
 %% After loading the net
 r = 15;
@@ -25,13 +25,6 @@ R = sqrt(X.^2 + Y.^2);
 interval = -1*ones(size(R));
 interval(R<14) = 0;
 interval(R<1.4) = 1;
-imgsToRun = 1089; % 56 186 351 392 558 561 751
-% load('C:\Users\dcorc\OneDrive\TAU 2\Advanced Topics in Medical Image Processing 1\CNN_project\matconvnet-fcn\data\trainStats_repad2_epoch_40.mat')
-% badTrain = unique([find([sSegStats.PPV] < 0.75), find([sSegStats.Sens] < 0.75)]);
-% badTrain(badTrain > 1092) = [];
-% imgsToRun = badTrain;
-% imgsToRun = 1092 + [1:171];
-% imgsToRun = find(imdb.images.set==3);
 nImages = max(imgsToRun);
 sSegStats = struct('TP', [], 'FP', [], 'FN', [], 'Sens', [], 'PPV', [], 'Dice', []);
 sSegStats = repmat(sSegStats, 1, nImages);
@@ -54,16 +47,16 @@ for imNum = imgsToRun
     predictMat = (probMat > 0.5) & dataStats.liverMask & ~dataStats.backGndSeg(imNum).seg;
     CC = bwconncomp(predictMat);
     [maxSize, largestComp] = max( cellfun(@(x) size(x,1), CC.PixelIdxList) );
-%     predictMatCC = false(size(predictMat));
-%     predictMatCC(CC.PixelIdxList{largestComp}) = true;
-	smallBlobs = bwhitmiss(uint8(predictMat), interval);
+    %     predictMatCC = false(size(predictMat));
+    %     predictMatCC(CC.PixelIdxList{largestComp}) = true;
+    smallBlobs = bwhitmiss(uint8(predictMat), interval);
     predictMat = predictMat & ~smallBlobs;
     if sum(predictMat(:)) > 4e3
         predictMat = imopen(uint8(predictMat), strel('disk', 4));
     else
         predictMat = imopen(uint8(predictMat), strel('disk', 2));
     end
-
+    
     if imdb.images.set(imNum) < 3
         segPath = sprintf(imdb.paths.segmentation.(dirNames{imdb.images.set(imNum)}), ['seg', imdb.images.name{imNum}]);
         seg = imread(segPath);
