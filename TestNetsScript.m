@@ -6,7 +6,7 @@ if 0
     addpath(genpath('C:\Program Files\MATLAB\MatConvNet'))
     run vl_setupnn;
     dbstop if error
-    load('data\fcn8_repad4\net-epoch-2.mat');
+    load('data\fcn8_repad2\net-epoch-40.mat', 'net');
     net = dagnn.DagNN.loadobj(net) ;
     net.mode = 'test' ;
     net.removeLayer('objective') ;
@@ -25,13 +25,13 @@ R = sqrt(X.^2 + Y.^2);
 interval = -1*ones(size(R));
 interval(R<14) = 0;
 interval(R<1.4) = 1;
-imgsToRun = 1089; % 56 186 351 392 558 561 751
+% imgsToRun = 1089; % 56 186 351 392 558 561 751
 % load('C:\Users\dcorc\OneDrive\TAU 2\Advanced Topics in Medical Image Processing 1\CNN_project\matconvnet-fcn\data\trainStats_repad2_epoch_40.mat')
 % badTrain = unique([find([sSegStats.PPV] < 0.75), find([sSegStats.Sens] < 0.75)]);
 % badTrain(badTrain > 1092) = [];
 % imgsToRun = badTrain;
-% imgsToRun = 1092 + [1:171];
-% imgsToRun = find(imdb.images.set==3);
+imgsToRun = 1092 + [1:171];
+% imgsToRun = find(imdb.images.set==2);
 nImages = max(imgsToRun);
 sSegStats = struct('TP', [], 'FP', [], 'FN', [], 'Sens', [], 'PPV', [], 'Dice', []);
 sSegStats = repmat(sSegStats, 1, nImages);

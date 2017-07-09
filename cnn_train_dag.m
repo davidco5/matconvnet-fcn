@@ -12,16 +12,16 @@ function [net,stats] = cnn_train_dag(net, imdb, getBatch, gpus, varargin)
 load('C:\Users\dcorc\OneDrive\TAU 2\Advanced Topics in Medical Image Processing 1\CNN_project\matconvnet-fcn\data\trainStats_repad2_epoch_40.mat')
 badTrain = unique([find([sSegStats.PPV] < 0.75), find([sSegStats.Sens] < 0.75)]);
 badTrain(badTrain > 1092) = [];
-opts.expDir = 'data\fcn8_repad4' ;
+opts.expDir = 'data\fcn8_repad4';
 opts.continue = true ;
 opts.batchSize = 40 ;
-opts.numSubBatches = 1 ;
+opts.numSubBatches = 2 ;
 opts.train = [] ;
 opts.val = [] ;
 opts.gpus = gpus ;
 opts.prefetch = true ;
 opts.epochSize = 240;
-opts.maxValSize = 50;
+opts.maxValSize = 40;
 opts.numEpochs = 100 ;
 opts.learningRate = 0.0001 ;
 opts.weightDecay = 0.00005 ;
@@ -38,7 +38,7 @@ end
 opts.momentum = 0.9 ;
 opts.saveSolverState = true ;
 opts.nesterovUpdate = false ;
-opts.randomSeed = 0;
+opts.randomSeed = 27;
 opts.profile = false ;
 opts.parameterServer.method = 'mmap' ;
 opts.parameterServer.prefix = 'mcn' ;
@@ -86,6 +86,7 @@ else
   state = [] ;
 end
 
+% state.solverState = [state.solverState(1:32), state.solverState(39), state.solverState(33:38)];
 for epoch=start+1:opts.numEpochs
 
   % Set the random seed based on the epoch and opts.randomSeed.

@@ -5,7 +5,7 @@ addpath(genpath(fullfile(pwd)))
 addpath(genpath('C:\Program Files\MATLAB\MatConvNet'))
 run vl_setupnn;
 dbstop if error
-load('data\fcn8_repad4\net-epoch-40.mat');
+load('data\fcn8_2\net-epoch-40.mat');
 net = dagnn.DagNN.loadobj(net) ;
 net.mode = 'test' ;
 net.removeLayer('objective') ;
